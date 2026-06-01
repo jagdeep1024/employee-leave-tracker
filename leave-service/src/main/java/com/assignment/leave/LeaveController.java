@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class LeaveController {
+    private static final Logger log = LoggerFactory.getLogger(LeaveController.class);
     private final LeaveRequestRepository leaves;
     private final EmployeeClient employeeClient;
     private final RabbitTemplate rabbitTemplate;
@@ -36,12 +39,16 @@ public class LeaveController {
     public LeaveRequest apply(@RequestBody ApplyLeaveRequest request,
                               @RequestHeader("X-User-Id") Long userId,
                               @RequestHeader("X-User-Role") String role) {
+        log.info("leave apply requested by user {} role {} for manager {} type {} from {} to {} days {}",
+                userId, role, request.managerId(), request.leaveType(), request.startDate(), request.endDate(), request.numberOfDays());
         if (!"EMPLOYEE".equals(role)) {
             throw new ForbiddenException("Only employees can apply for leave");
         }
         validateApplication(request, userId);
         LeaveRequest leave = leaves.save(new LeaveRequest(userId, request.managerId(), request.leaveType().toUpperCase(),
                 request.startDate(), request.endDate(), request.numberOfDays(), request.reason()));
+        log.info("leave request created id {} for employee {} manager {} status {}",
+                leave.getId(), leave.getEmployeeId(), leave.getManagerId(), leave.getStatus());
         publish("LEAVE_APPLIED", leave.getEmployeeId(), leave.getManagerId(), leave.getId(),
                 "Leave request submitted for approval");
         return leave;
@@ -53,6 +60,7 @@ public class LeaveController {
                                       @RequestParam(value = "size", defaultValue = "10") int size,
                                       @RequestHeader("X-User-Id") Long userId,
                                       @RequestHeader("X-User-Role") String role) {
+        log.info("leave history requested by employee {} role {} status {} page {} size {}", userId, role, status, page, size);
         if (!"EMPLOYEE".equals(role)) {
             throw new ForbiddenException("Only employees can view employee leave history");
         }
@@ -66,6 +74,8 @@ public class LeaveController {
                                             @RequestParam(value = "to", required = false) LocalDate to,
                                             @RequestHeader("X-User-Id") Long userId,
                                             @RequestHeader("X-User-Role") String role) {
+        log.info("manager leaves requested by manager {} role {} status {} employeeId {} from {} to {}",
+                userId, role, status, employeeId, from, to);
         if (!"MANAGER".equals(role)) {
             throw new ForbiddenException("Only managers can view team leave requests");
         }
@@ -77,12 +87,14 @@ public class LeaveController {
     public LeaveRequest approve(@PathVariable("leaveId") Long leaveId,
                                 @RequestHeader("X-User-Id") Long userId,
                                 @RequestHeader("X-User-Role") String role) {
+        log.info("leave approve requested for leave {} by manager {}", leaveId, userId);
         if (!"MANAGER".equals(role)) {
             throw new ForbiddenException("Only managers can approve leave");
         }
         LeaveRequest leave = findManagerLeave(leaveId, userId);
         employeeClient.deduct(leave.getEmployeeId(), leave.getLeaveType(), leave.getNumberOfDays());
         leave.approve();
+        log.info("leave approved id {} employee {} manager {}", leave.getId(), leave.getEmployeeId(), leave.getManagerId());
         publish("LEAVE_APPROVED", leave.getEmployeeId(), leave.getManagerId(), leave.getId(), "Leave request approved");
         return leave;
     }
@@ -93,11 +105,13 @@ public class LeaveController {
                                @RequestBody RejectRequest request,
                                @RequestHeader("X-User-Id") Long userId,
                                @RequestHeader("X-User-Role") String role) {
+        log.info("leave reject requested for leave {} by manager {} reason {}", leaveId, userId, request.reason());
         if (!"MANAGER".equals(role)) {
             throw new ForbiddenException("Only managers can reject leave");
         }
         LeaveRequest leave = findManagerLeave(leaveId, userId);
         leave.reject(request.reason());
+        log.info("leave rejected id {} employee {} manager {}", leave.getId(), leave.getEmployeeId(), leave.getManagerId());
         publish("LEAVE_REJECTED", leave.getEmployeeId(), leave.getManagerId(), leave.getId(),
                 "Leave request rejected: " + request.reason());
         return leave;
