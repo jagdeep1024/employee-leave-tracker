@@ -1,0 +1,217 @@
+{
+  "info": {
+    "name": "Employee Leave Tracker",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://140.245.12.187:9000" },
+    { "key": "employeeToken", "value": "" },
+    { "key": "managerToken", "value": "" },
+    { "key": "leaveId", "value": "1" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.collectionVariables.set(\"baseUrl\", \"http://140.245.12.187:9000\");"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Login Employee",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"employee1@company.com\",\n  \"password\": \"password\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const res = pm.response.json();",
+              "  pm.collectionVariables.set(\"employeeToken\", res.token);",
+              "  pm.environment.set(\"employeeToken\", res.token);",
+              "  pm.collectionVariables.set(\"token\", res.token);",
+              "  pm.environment.set(\"token\", res.token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login Manager",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"manager1@company.com\",\n  \"password\": \"password\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const res = pm.response.json();",
+              "  pm.collectionVariables.set(\"managerToken\", res.token);",
+              "  pm.environment.set(\"managerToken\", res.token);",
+              "  pm.collectionVariables.set(\"token\", res.token);",
+              "  pm.environment.set(\"token\", res.token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "NEG - Login Failure",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"employee1@company.com\",\n  \"password\": \"wrong\"\n}"
+        }
+      }
+    },
+    {
+      "name": "NEG - Unauthorized Balance",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/employees/201/leave-balances"
+      }
+    },
+    {
+      "name": "Employee Balance",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
+        "url": "{{baseUrl}}/employees/201/leave-balances"
+      }
+    },
+    {
+      "name": "Apply Leave Success",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+        ],
+        "url": "{{baseUrl}}/leaves",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"leaveType\": \"CASUAL\",\n  \"startDate\": \"2026-06-15\",\n  \"endDate\": \"2026-06-16\",\n  \"numberOfDays\": 2,\n  \"reason\": \"Family work\",\n  \"managerId\": 101\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const res = pm.response.json();",
+              "  pm.collectionVariables.set(\"leaveId\", res.id);",
+              "  pm.environment.set(\"leaveId\", res.id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "NEG - Apply Leave Past Date Failure",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+        ],
+        "url": "{{baseUrl}}/leaves",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"leaveType\": \"CASUAL\",\n  \"startDate\": \"2025-01-01\",\n  \"endDate\": \"2025-01-02\",\n  \"numberOfDays\": 2,\n  \"reason\": \"Old date\",\n  \"managerId\": 101\n}"
+        }
+      }
+    },
+    {
+      "name": "NEG - Apply Leave Insufficient Balance Failure",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+        ],
+        "url": "{{baseUrl}}/leaves",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"leaveType\": \"SICK\",\n  \"startDate\": \"2026-07-01\",\n  \"endDate\": \"2026-07-20\",\n  \"numberOfDays\": 20,\n  \"reason\": \"Long leave\",\n  \"managerId\": 101\n}"
+        }
+      }
+    },
+    {
+      "name": "Leave History",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
+        "url": "{{baseUrl}}/leaves/history?page=0&size=10"
+      }
+    },
+    {
+      "name": "Manager Requests",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
+        "url": "{{baseUrl}}/manager/leaves?status=PENDING"
+      }
+    },
+    {
+      "name": "Approve Leave",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{managerToken}}" }],
+        "url": "{{baseUrl}}/manager/leaves/{{leaveId}}/approve"
+      }
+    },
+    {
+      "name": "Reject Leave",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{managerToken}}" }
+        ],
+        "url": "{{baseUrl}}/manager/leaves/{{leaveId}}/reject",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Team coverage issue\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Notifications",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
+        "url": "{{baseUrl}}/notifications/me"
+      }
+    }
+  ]
+}
