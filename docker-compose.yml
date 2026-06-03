@@ -1,0 +1,226 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: leave-postgres
+    environment:
+      POSTGRES_DB: leave_tracker
+      POSTGRES_USER: leave_user
+      POSTGRES_PASSWORD: leave_pass
+    ports:
+      - "5432:5432"
+      - "9007:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leave_user -d leave_tracker"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: leave-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: leave_user
+      RABBITMQ_DEFAULT_PASS: leave_pass
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "9009:5672"
+      - "9008:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  zipkin:
+    image: openzipkin/zipkin:2
+    container_name: leave-zipkin
+    ports:
+      - "9010:9411"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    container_name: leave-elasticsearch
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.security.http.ssl.enabled: "false"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "9011:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s >/dev/null"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.3
+    container_name: leave-kibana
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      SERVER_PUBLICBASEURL: http://140.245.12.187:9012
+    ports:
+      - "9012:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  # logstash:
+  #   image: docker.elastic.co/logstash/logstash:8.15.3
+  #   container_name: leave-logstash
+  #   environment:
+  #     LS_JAVA_OPTS: -Xms256m -Xmx256m
+  #     XPACK_MONITORING_ENABLED: "false"
+  #   ports:
+  #     - "9013:5044"
+  #     - "9014:9600"
+  #   volumes:
+  #     - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+  #   depends_on:
+  #     elasticsearch:
+  #       condition: service_healthy
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.15.3
+    container_name: leave-filebeat
+    user: root
+    command: ["--strict.perms=false"]
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  discovery-service:
+    image: jagcoool/nagp-employee-leave-tracker-discovery-service:latest
+    container_name: discovery-service
+    ports:
+      - "9005:9005"
+    environment:
+      SERVER_PORT: 9005
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx128m
+
+  auth-service:
+    image: jagcoool/nagp-employee-leave-tracker-auth-service:latest
+    container_name: auth-service
+    ports:
+      - "9001:9001"
+    environment:
+      SERVER_PORT: 9001
+      EUREKA_URL: http://discovery-service:9005/eureka/
+      JWT_SECRET: assignment-secret-key-assignment-secret-key
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx128m
+    depends_on:
+      discovery-service:
+        condition: service_started
+
+  employee-service:
+    image: jagcoool/nagp-employee-leave-tracker-employee-service:latest
+    container_name: employee-service
+    ports:
+      - "9002:9002"
+    environment:
+      SERVER_PORT: 9002
+      EUREKA_URL: http://discovery-service:9005/eureka/
+      DB_URL: jdbc:postgresql://postgres:5432/leave_tracker
+      DB_USERNAME: leave_user
+      DB_PASSWORD: leave_pass
+      JWT_SECRET: assignment-secret-key-assignment-secret-key
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx160m
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+
+  leave-service:
+    image: jagcoool/nagp-employee-leave-tracker-leave-service:latest
+    container_name: leave-service
+    ports:
+      - "9003:9003"
+    environment:
+      SERVER_PORT: 9003
+      EUREKA_URL: http://discovery-service:9005/eureka/
+      DB_URL: jdbc:postgresql://postgres:5432/leave_tracker
+      DB_USERNAME: leave_user
+      DB_PASSWORD: leave_pass
+      RABBIT_HOST: rabbitmq
+      RABBIT_PORT: 5672
+      RABBIT_USERNAME: leave_user
+      RABBIT_PASSWORD: leave_pass
+      EMPLOYEE_SERVICE_URL: http://employee-service:9002
+      JWT_SECRET: assignment-secret-key-assignment-secret-key
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx160m
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      employee-service:
+        condition: service_started
+
+  notification-service:
+    image: jagcoool/nagp-employee-leave-tracker-notification-service:latest
+    container_name: notification-service
+    ports:
+      - "9004:9004"
+    environment:
+      SERVER_PORT: 9004
+      EUREKA_URL: http://discovery-service:9005/eureka/
+      DB_URL: jdbc:postgresql://postgres:5432/leave_tracker
+      DB_USERNAME: leave_user
+      DB_PASSWORD: leave_pass
+      RABBIT_HOST: rabbitmq
+      RABBIT_PORT: 5672
+      RABBIT_USERNAME: leave_user
+      RABBIT_PASSWORD: leave_pass
+      JWT_SECRET: assignment-secret-key-assignment-secret-key
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx128m
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  api-gateway:
+    image: jagcoool/nagp-employee-leave-tracker-api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "9000:9000"
+    environment:
+      SERVER_PORT: 9000
+      EUREKA_URL: http://discovery-service:9005/eureka/
+      JWT_SECRET: assignment-secret-key-assignment-secret-key
+      CORS_ALLOWED_ORIGINS: http://140.245.12.187:9006
+      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx160m
+    depends_on:
+      auth-service:
+        condition: service_started
+      employee-service:
+        condition: service_started
+      leave-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+
+  ui:
+    image: jagcoool/nagp-employee-leave-tracker-ui:latest
+    container_name: leave-ui
+    ports:
+      - "9006:80"
+    depends_on:
+      api-gateway:
+        condition: service_started
+
+volumes:
+  postgres-data:
+  elasticsearch-data:
