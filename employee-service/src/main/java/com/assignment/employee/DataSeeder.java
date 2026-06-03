@@ -1,6 +1,7 @@
 package com.assignment.employee;
 
 import java.util.List;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -20,8 +21,8 @@ public class DataSeeder implements CommandLineRunner {
             return;
         }
         employees.saveAll(List.of(
-                new Employee(101L, "Ananya Manager", "manager1@company.com", "MANAGER", null),
-                new Employee(102L, "Rohit Manager", "manager2@company.com", "MANAGER", null),
+                new Employee(101L, "Meenal Garg", "manager1@company.com", "MANAGER", null),
+                new Employee(102L, "Archit bansal", "manager2@company.com", "MANAGER", null),
                 new Employee(201L, "Jagdeep Employee", "employee1@company.com", "EMPLOYEE", 101L),
                 new Employee(202L, "Arjun Employee", "employee2@company.com", "EMPLOYEE", 101L),
                 new Employee(203L, "Meera Employee", "employee3@company.com", "EMPLOYEE", 102L)

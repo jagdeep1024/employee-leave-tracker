@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employee Leave Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="topbar">
+      <div>
+        <h1>Employee Leave Tracker</h1>
+        <p id="userLine">Login to start</p>
+      </div>
+      <button id="logoutBtn" class="secondary hidden">Logout</button>
+    </section>
+
+    <section id="loginPanel" class="panel login-grid">
+      <div>
+        <h2>Login</h2>
+        <p>Use one of the seeded users from the README.</p>
+      </div>
+      <form id="loginForm">
+        <label>Email</label>
+        <input id="email" type="email" value="employee1@company.com" required>
+        <label>Password</label>
+        <input id="password" type="password" value="password" required>
+        <button type="submit">Login</button>
+      </form>
+    </section>
+
+    <section id="appPanel" class="hidden">
+      <nav class="tabs">
+        <button data-tab="employee" class="active">Employee</button>
+        <button data-tab="manager">Manager</button>
+        <button data-tab="notifications">Notifications</button>
+      </nav>
+
+      <div id="employeeTab" class="tab-panel">
+        <div class="grid two">
+          <section class="panel">
+            <h2>Leave Balances</h2>
+            <div id="balances" class="list"></div>
+          </section>
+          <section class="panel">
+            <h2>Apply Leave</h2>
+            <form id="applyForm">
+              <label>Leave Type</label>
+              <select id="leaveType">
+                <option value="CASUAL">Casual</option>
+                <option value="SICK">Sick</option>
+                <option value="PRIVILEGE">Privilege</option>
+              </select>
+              <label>Start Date</label>
+              <input id="startDate" type="date" required>
+              <label>End Date</label>
+              <input id="endDate" type="date" required>
+              <label>Days</label>
+              <input id="days" type="number" min="0.5" step="0.5" value="1" required>
+              <label>Manager Id</label>
+              <input id="managerId" type="number" value="101" required>
+              <label>Reason</label>
+              <textarea id="reason" rows="3">Personal work</textarea>
+              <button type="submit">Apply</button>
+            </form>
+          </section>
+        </div>
+        <section class="panel">
+          <h2>Leave History</h2>
+          <div id="history" class="list"></div>
+        </section>
+      </div>
+
+      <div id="managerTab" class="tab-panel hidden">
+        <section class="panel">
+          <div class="row">
+            <h2>Team Requests</h2>
+            <button id="refreshManager" class="secondary">Refresh</button>
+          </div>
+          <div id="managerRequests" class="list"></div>
+        </section>
+      </div>
+
+      <div id="notificationsTab" class="tab-panel hidden">
+        <section class="panel">
+          <div class="row">
+            <h2>Notifications</h2>
+            <button id="refreshNotifications" class="secondary">Refresh</button>
+          </div>
+          <div id="notifications" class="list"></div>
+        </section>
+      </div>
+    </section>
+
+    <p id="message" class="message"></p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, Arial, sans-serif;
+  background: #f6f7f9;
+  color: #20242a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 24px auto;
+}
+
+.topbar,
+.panel {
+  background: #ffffff;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+.login-grid,
+.grid.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+form {
+  display: grid;
+  gap: 8px;
+}
+
+label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #c8ced6;
+  border-radius: 6px;
+  padding: 10px;
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 6px;
+  background: #176b87;
+  color: white;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #e9edf1;
+  color: #20242a;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.tabs button {
+  background: #e9edf1;
+  color: #20242a;
+}
+
+.tabs button.active {
+  background: #176b87;
+  color: white;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.item {
+  border: 1px solid #e1e5ea;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fbfcfd;
+}
+
+.item strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.message {
+  margin-top: 16px;
+  min-height: 24px;
+  color: #8a4b08;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .login-grid,
+  .grid.two,
+  .topbar {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+}

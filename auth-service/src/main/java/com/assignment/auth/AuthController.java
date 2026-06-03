@@ -24,8 +24,8 @@ public class AuthController {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final SecretKey key;
     private final List<AppUser> users = List.of(
-            new AppUser(101L, "manager1@company.com", "password", "MANAGER", "Ananya Manager"),
-            new AppUser(102L, "manager2@company.com", "password", "MANAGER", "Rohit Manager"),
+            new AppUser(101L, "manager1@company.com", "password", "MANAGER", "Meenal Garg"),
+            new AppUser(102L, "manager2@company.com", "password", "MANAGER", "Archit bansal"),
             new AppUser(201L, "employee1@company.com", "password", "EMPLOYEE", "Jagdeep Employee"),
             new AppUser(202L, "employee2@company.com", "password", "EMPLOYEE", "Arjun Employee"),
             new AppUser(203L, "employee3@company.com", "password", "EMPLOYEE", "Meera Employee")
