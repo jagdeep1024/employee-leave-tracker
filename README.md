@@ -268,6 +268,14 @@ Useful fields while checking logs:
 - `message`
 - `project.name`
 
+Useful Kibana KQL query for all coded Java services:
+
+```text
+container.name : ("api-gateway" or "auth-service" or "employee-service" or "leave-service" or "notification-service" or "discovery-service")
+```
+
+More Kibana queries are available in [Kibana Queries](documentation/kibana-queries.md).
+
 Logstash configuration is present but the Logstash service is not enabled by default in `docker-compose.yml`.
 
 ## Local Build
@@ -304,6 +312,7 @@ mvn -pl leave-service spring-boot:run
 - [Docker Images](documentation/docker-images.md)
 - [Setup Guide](documentation/setup-guide.md)
 - [Demo Script](documentation/demo-script.md)
+- [Kibana Queries](documentation/kibana-queries.md)
 - [Postman Collection](documentation/postman-collection.json)
 
 Demo video link: add final recording link here.

@@ -10,6 +10,51 @@ This guide explains how I run the Employee Leave Tracker project for evaluation 
 
 The project is intended to start with Docker Compose, so Java and Maven are not required just to run the containers.
 
+## Repository
+
+Public GitHub repository:
+
+```text
+https://github.com/jagdeep1024/employee-leave-tracker
+```
+
+## Fresh Server Setup
+
+On a fresh Ubuntu server, install Git and Docker:
+
+```bash
+sudo apt update
+sudo apt install -y git docker.io docker-compose-v2
+sudo systemctl enable --now docker
+```
+
+Clone the repository:
+
+```bash
+cd /home
+sudo git clone https://github.com/jagdeep1024/employee-leave-tracker.git
+sudo chown -R $USER:$USER employee-leave-tracker
+cd employee-leave-tracker
+```
+
+Start the full stack:
+
+```bash
+docker compose up -d
+```
+
+Check containers:
+
+```bash
+docker compose ps
+```
+
+Check logs if any service is not healthy:
+
+```bash
+docker compose logs -f
+```
+
 ## Start The Project
 
 From the project root:
