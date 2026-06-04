@@ -199,7 +199,7 @@ services:
       SERVER_PORT: 9000
       EUREKA_URL: http://discovery-service:9005/eureka/
       JWT_SECRET: assignment-secret-key-assignment-secret-key
-      CORS_ALLOWED_ORIGINS: http://140.245.12.187:9006
+      CORS_ALLOWED_ORIGINS: "*"
       ZIPKIN_URL: http://zipkin:9411/api/v2/spans
       JAVA_TOOL_OPTIONS: -Xms64m -Xmx160m
     depends_on:

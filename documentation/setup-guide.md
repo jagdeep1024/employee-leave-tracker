@@ -147,7 +147,7 @@ Employee-manager mapping:
 | `EUREKA_URL` | Eureka registry URL |
 | `ZIPKIN_URL` | Zipkin collector endpoint |
 | `EMPLOYEE_SERVICE_URL` | Direct URL used by leave-service for employee-service calls |
-| `CORS_ALLOWED_ORIGINS` | UI origin allowed by the API Gateway |
+| `CORS_ALLOWED_ORIGINS` | Origins allowed by the API Gateway. Current Docker setup uses `*` for demo access. |
 
 ## Local Maven Build
 

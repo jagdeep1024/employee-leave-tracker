@@ -1,0 +1,81 @@
+Circuit breaker implementation
+==============================
+
+The circuit breaker is implemented in leave-service around calls to employee-service.
+
+Code:
+- leave-service/src/main/java/com/assignment/leave/EmployeeClient.java
+
+Protected calls:
+- managerValid(): validates employee-manager relationship
+- balance(): checks leave balance before applying leave
+- deduct(): deducts leave balance when a manager approves leave
+
+Configuration:
+- leave-service/src/main/resources/application.properties
+
+Current config:
+- resilience4j.circuitbreaker.instances.employeeService.sliding-window-size=5
+- resilience4j.circuitbreaker.instances.employeeService.failure-rate-threshold=50
+- resilience4j.circuitbreaker.instances.employeeService.wait-duration-in-open-state=10s
+- management.endpoints.web.exposure.include=health,info,circuitbreakers
+
+There is no fallback method. If employee-service is down, leave-service returns an error.
+When the breaker opens, Resilience4j blocks calls quickly instead of repeatedly calling the failed employee-service.
+
+How to test
+===========
+
+1. Start the stack.
+
+   docker compose up -d
+
+2. Login as an employee through the gateway.
+
+   $login = Invoke-RestMethod -Method Post http://localhost:9000/auth/login `
+     -ContentType "application/json" `
+     -Body '{"email":"employee1@company.com","password":"password"}'
+
+   $token = $login.token
+
+3. Stop employee-service.
+
+   docker stop employee-service
+
+4. Trigger protected calls by applying for leave multiple times.
+
+   1..6 | ForEach-Object {
+     Invoke-RestMethod -Method Post http://localhost:9000/leaves `
+       -Headers @{ Authorization = "Bearer $token" } `
+       -ContentType "application/json" `
+       -Body '{"leaveType":"CASUAL","startDate":"2026-06-10","endDate":"2026-06-11","numberOfDays":2,"reason":"Circuit breaker test","managerId":101}' `
+       -ErrorAction SilentlyContinue
+   }
+
+5. Check the circuit breaker state on leave-service.
+
+   Invoke-RestMethod http://localhost:9003/actuator/circuitbreakers
+   Invoke-RestMethod http://localhost:9003/actuator/circuitbreakers/employeeService
+
+6. Start employee-service again.
+
+   docker start employee-service
+
+7. Wait longer than the open-state duration, then check again.
+
+   Start-Sleep -Seconds 12
+   Invoke-RestMethod http://localhost:9003/actuator/circuitbreakers/employeeService
+
+8. Retry the leave request.
+
+   Invoke-RestMethod -Method Post http://localhost:9000/leaves `
+     -Headers @{ Authorization = "Bearer $token" } `
+     -ContentType "application/json" `
+     -Body '{"leaveType":"CASUAL","startDate":"2026-06-12","endDate":"2026-06-13","numberOfDays":2,"reason":"Circuit breaker recovery test","managerId":101}'
+
+Optional predictable-demo setting
+=================================
+
+If the breaker does not open after 5 failed calls, add this property to leave-service/src/main/resources/application.properties:
+
+resilience4j.circuitbreaker.instances.employeeService.minimum-number-of-calls=5

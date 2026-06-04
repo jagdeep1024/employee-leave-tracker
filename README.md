@@ -4,6 +4,27 @@ Employee Leave Tracker is a microservices-based backend project for managing emp
 
 This project was built for the Microservices Assignment 2026 using Java Spring Boot, Docker Compose, RabbitMQ, Eureka, API Gateway, PostgreSQL, Zipkin, and ELK-based log viewing.
 
+## Try The Live Hosted Version
+
+I have deployed a live running version of this project on my personal VPS for direct evaluation.
+
+| Component | Live URL |
+| --- | --- |
+| UI | http://140.245.12.187:9006 |
+| API Gateway | http://140.245.12.187:9000 |
+| Eureka | http://140.245.12.187:9005 |
+| RabbitMQ Management | http://140.245.12.187:9008 |
+| Zipkin | http://140.245.12.187:9010 |
+| Elasticsearch | http://140.245.12.187:9011 |
+| Kibana | http://140.245.12.187:9012 |
+
+Demo login credentials:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Manager | manager1@company.com | password |
+| Employee | employee1@company.com | password |
+
 ## What This Project Covers
 
 - JWT-based login and authentication
