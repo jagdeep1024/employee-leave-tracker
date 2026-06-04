@@ -8,6 +8,12 @@ This project was built for the Microservices Assignment 2026 using Java Spring B
 
 I have deployed a live running version of this project on my personal VPS for direct evaluation.
 
+Demo video:
+
+```text
+https://drive.google.com/drive/folders/1Kam0RSMFbvBLdFt556VVRdfXLkyiKUG_?usp=sharing
+```
+
 | Component | Live URL |
 | --- | --- |
 | UI | http://140.245.12.187:9006 |
